@@ -177,6 +177,15 @@ def take_asn_int(data):
     return val
 
 
+def take_asn_null(data):
+    """Consume an ASN.1 BER NULL field (tag=0x05, length=0x00)."""
+    assert data.pop(0) == 0x05
+    length = data.pop(0)
+    for _ in range(length):
+        data.pop(0)
+    return None
+
+
 def take_string(data):
     t = data.pop(0)
     assert t in [0x55, 0x56, 0x57]
@@ -213,6 +222,8 @@ def unpack_unknown(data):
             out.append(take_asn_int(data))
         elif t in [0x55, 0x56, 0x57]:
             out.append(take_string(data))
+        elif t == 0x05:                          # ASN.1 BER NULL
+            out.append(take_asn_null(data))
         else:
             raise ValueError("unknown type 0x%x" % t)
 
